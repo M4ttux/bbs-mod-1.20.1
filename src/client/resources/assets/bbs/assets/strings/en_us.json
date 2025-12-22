@@ -826,6 +826,7 @@
     "bbs.ui.scene.replays.context.process-description": "Input math expression, and select desired channels which will be process all keyframes in selected replays:",
     "bbs.ui.scene.replays.context.process-title": "Process replays",
     "bbs.ui.scene.replays.context.process.expression-tooltip": "Following variables are available:\n§ei§r - replay index\n§eo§r - relative replay index\n§ev§r - keyframe value\n§eki§r - keyframe index",
+    "bbs.ui.scene.replays.context.random_skins": "Apply random skins...",
     "bbs.ui.scene.replays.context.remove": "Remove replay(s)",
     "bbs.ui.search": "Search...",
     "bbs.ui.selectors.context.add": "Add an entity selector",

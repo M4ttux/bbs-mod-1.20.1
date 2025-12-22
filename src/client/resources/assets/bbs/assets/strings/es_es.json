@@ -782,6 +782,7 @@
     "bbs.ui.scene.replays.context.process-description": "Ingresa una expresión matemática y selecciona los canales deseados que procesarán todos los fotogramas clave en las reproducciones seleccionadas:",
     "bbs.ui.scene.replays.context.process-title": "Procesar reproducciones",
     "bbs.ui.scene.replays.context.process.expression-tooltip": "Las siguientes variables están disponibles:\n§ei§r - índice de la reproducción\n§eo§r - índice relativo de la reproducción\n§ev§r - valor del fotograma clave\n§eki§r - índice del fotograma clave",
+    "bbs.ui.scene.replays.context.random_skins": "Aplicar skins aleatorias...",
     "bbs.ui.scene.replays.context.remove": "Eliminar reproducción",
     "bbs.ui.search": "Buscar...",
     "bbs.ui.selectors.context.add": "Agregar un selector de entidades",
