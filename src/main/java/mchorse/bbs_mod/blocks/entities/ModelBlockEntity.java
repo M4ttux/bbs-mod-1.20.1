@@ -100,6 +100,14 @@ public class ModelBlockEntity extends BlockEntity
         this.entity.update();
         this.entity.setWorld(world);
         this.properties.update(this.entity);
+        
+        /* Apply equipment from properties to entity */
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.MAINHAND, this.properties.getMainHand());
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.OFFHAND, this.properties.getOffHand());
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.HEAD, this.properties.getArmorHead());
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.CHEST, this.properties.getArmorChest());
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.LEGS, this.properties.getArmorLegs());
+        this.entity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.FEET, this.properties.getArmorFeet());
     }
 
     @Nullable

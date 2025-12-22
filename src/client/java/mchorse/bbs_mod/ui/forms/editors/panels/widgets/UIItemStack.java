@@ -121,7 +121,7 @@ public class UIItemStack extends UIElement
         context.batcher.box((float)this.area.x, (float)this.area.y, (float)this.area.ex(), (float)this.area.ey(), border);
         context.batcher.box((float)(this.area.x + 1), (float)(this.area.y + 1), (float)(this.area.ex() - 1), (float)(this.area.ey() - 1), -3750202);
 
-        if (this.stack != null && !this.stack.isEmpty())
+        if (this.stack != null && !this.stack.isEmpty() && !this.opened)
         {
             MatrixStack matrices = context.batcher.getContext().getMatrices();
             CustomVertexConsumerProvider consumers = FormUtilsClient.getProvider();

@@ -7,6 +7,7 @@ import mchorse.bbs_mod.blocks.entities.ModelBlockEntity;
 import mchorse.bbs_mod.blocks.entities.ModelProperties;
 import mchorse.bbs_mod.camera.CameraUtils;
 import mchorse.bbs_mod.client.BBSRendering;
+import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.graphics.Draw;
 import mchorse.bbs_mod.network.ClientNetwork;
 import mchorse.bbs_mod.ui.Keys;
@@ -17,6 +18,7 @@ import mchorse.bbs_mod.ui.dashboard.panels.UIDashboardPanel;
 import mchorse.bbs_mod.ui.forms.UIFormPalette;
 import mchorse.bbs_mod.ui.forms.UINestedEdit;
 import mchorse.bbs_mod.ui.forms.UIToggleEditorEvent;
+import mchorse.bbs_mod.ui.forms.editors.panels.widgets.UIItemStack;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
@@ -61,6 +63,12 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
     public UIToggle global;
     public UIToggle lookAt;
     public UIPropTransform transform;
+    public UIItemStack mainHand;
+    public UIItemStack offHand;
+    public UIItemStack armorHead;
+    public UIItemStack armorChest;
+    public UIItemStack armorLegs;
+    public UIItemStack armorFeet;
 
     private ModelBlockEntity modelBlock;
     private ModelBlockEntity hovered;
@@ -113,6 +121,7 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
             palette.editor.renderer.full(dashboard.getRoot());
             palette.editor.renderer.setTarget(this.modelBlock.getEntity());
             palette.editor.renderer.setRenderForm(() -> !toggleRendering);
+            this.applyEquipment();
             palette.getEvents().register(UIToggleEditorEvent.class, (e) ->
             {
                 if (e.editing)
@@ -151,8 +160,50 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
 
         this.transform = new UIPropTransform();
         this.transform.enableHotkeys();
+        
+        this.mainHand = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setMainHand(stack);
+            this.save(this.modelBlock);
+        });
+        this.offHand = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setOffHand(stack);
+            this.save(this.modelBlock);
+        });
+        this.armorHead = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setArmorHead(stack);
+            this.save(this.modelBlock);
+        });
+        this.armorChest = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setArmorChest(stack);
+            this.save(this.modelBlock);
+        });
+        this.armorLegs = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setArmorLegs(stack);
+            this.save(this.modelBlock);
+        });
+        this.armorFeet = new UIItemStack((stack) -> {
+            this.modelBlock.getProperties().setArmorFeet(stack);
+            this.save(this.modelBlock);
+        });
 
-        this.editor = UI.column(this.pickEdit, this.enabled, this.shadow, this.global, this.lookAt, this.transform);
+        UIElement spacer = new UIElement();
+        spacer.h(150);
+
+        this.editor = UI.column(
+            this.pickEdit, 
+            this.enabled, 
+            this.shadow, 
+            this.global, 
+            this.lookAt, 
+            this.transform,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_MAIN_HAND).marginTop(12), this.mainHand,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_OFF_HAND).marginTop(12), this.offHand,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_ARMOR_HEAD).marginTop(12), this.armorHead,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_ARMOR_CHEST).marginTop(12), this.armorChest,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_ARMOR_LEGS).marginTop(12), this.armorLegs,
+            UI.label(UIKeys.MODEL_BLOCKS_EQUIPMENT_ARMOR_FEET).marginTop(12), this.armorFeet,
+            spacer
+        );
 
         this.scrollView = UI.scrollView(5, 10, this.modelBlocks, this.editor);
         this.scrollView.scroll.opposite().cancelScrolling();
@@ -324,6 +375,13 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
         this.shadow.setValue(properties.isShadow());
         this.global.setValue(properties.isGlobal());
         this.lookAt.setValue(properties.isLookAt());
+        
+        this.mainHand.setStack(properties.getMainHand());
+        this.offHand.setStack(properties.getOffHand());
+        this.armorHead.setStack(properties.getArmorHead());
+        this.armorChest.setStack(properties.getArmorChest());
+        this.armorLegs.setStack(properties.getArmorLegs());
+        this.armorFeet.setStack(properties.getArmorFeet());
     }
 
     private void save(ModelBlockEntity modelBlock)
@@ -331,6 +389,22 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
         if (modelBlock != null)
         {
             ClientNetwork.sendModelBlockForm(modelBlock.getPos(), modelBlock);
+        }
+    }
+    
+    private void applyEquipment()
+    {
+        if (this.modelBlock != null)
+        {
+            ModelProperties properties = this.modelBlock.getProperties();
+            IEntity iEntity = this.modelBlock.getEntity();
+            
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.MAINHAND, properties.getMainHand());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.OFFHAND, properties.getOffHand());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.HEAD, properties.getArmorHead());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.CHEST, properties.getArmorChest());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.LEGS, properties.getArmorLegs());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.FEET, properties.getArmorFeet());
         }
     }
 
@@ -359,6 +433,8 @@ public class UIModelBlockPanel extends UIDashboardPanel implements IFlightSuppor
     @Override
     public void render(UIContext context)
     {
+        this.applyEquipment();
+        
         String label = UIKeys.FILM_CONTROLLER_SPEED.format(this.dashboard.orbit.speed.getValue()).get();
         FontRenderer font = context.batcher.getFont();
         int w = font.getWidth(label);

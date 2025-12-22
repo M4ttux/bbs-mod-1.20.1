@@ -608,6 +608,14 @@ public class UIReplayList extends UIList<Replay>
         replay.keyframes.x.insert(0, x);
         replay.keyframes.y.insert(0, y);
         replay.keyframes.z.insert(0, z);
+        
+        /* Copy equipment from model block to replay */
+        if (!properties.getMainHand().isEmpty()) replay.keyframes.mainHand.insert(0, properties.getMainHand().copy());
+        if (!properties.getOffHand().isEmpty()) replay.keyframes.offHand.insert(0, properties.getOffHand().copy());
+        if (!properties.getArmorHead().isEmpty()) replay.keyframes.armorHead.insert(0, properties.getArmorHead().copy());
+        if (!properties.getArmorChest().isEmpty()) replay.keyframes.armorChest.insert(0, properties.getArmorChest().copy());
+        if (!properties.getArmorLegs().isEmpty()) replay.keyframes.armorLegs.insert(0, properties.getArmorLegs().copy());
+        if (!properties.getArmorFeet().isEmpty()) replay.keyframes.armorFeet.insert(0, properties.getArmorFeet().copy());
 
         if (!transform.isDefault())
         {

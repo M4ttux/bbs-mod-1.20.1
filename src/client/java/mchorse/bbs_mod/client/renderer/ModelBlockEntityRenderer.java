@@ -138,6 +138,15 @@ public class ModelBlockEntityRenderer implements BlockEntityRenderer<ModelBlockE
 
             int lightAbove = WorldRenderer.getLightmapCoordinates(entity.getWorld(), pos.add((int) transform.translate.x, (int) transform.translate.y, (int) transform.translate.z));
             Camera camera = mc.gameRenderer.getCamera();
+            
+            /* Apply equipment to entity */
+            IEntity iEntity = entity.getEntity();
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.MAINHAND, properties.getMainHand());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.OFFHAND, properties.getOffHand());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.HEAD, properties.getArmorHead());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.CHEST, properties.getArmorChest());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.LEGS, properties.getArmorLegs());
+            iEntity.setEquipmentStack(net.minecraft.entity.EquipmentSlot.FEET, properties.getArmorFeet());
 
             RenderSystem.enableDepthTest();
             FormUtilsClient.render(properties.getForm(), new FormRenderingContext()

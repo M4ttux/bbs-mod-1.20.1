@@ -605,6 +605,12 @@ public class UIKeys
     public static final IKey MODEL_BLOCKS_TRANSFORM_FIRST_PERSON = L10n.lang("bbs.ui.model_blocks.transform.first_person");
     public static final IKey MODEL_BLOCKS_TRANSFORM_INVENTORY = L10n.lang("bbs.ui.model_blocks.transform.inventory");
     public static final IKey MODEL_BLOCKS_TRANSFORM_THIRD_PERSON = L10n.lang("bbs.ui.model_blocks.transform.third_person");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_MAIN_HAND = L10n.lang("bbs.ui.model_blocks.equipment.main_hand");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_OFF_HAND = L10n.lang("bbs.ui.model_blocks.equipment.off_hand");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_ARMOR_HEAD = L10n.lang("bbs.ui.model_blocks.equipment.armor_head");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_ARMOR_CHEST = L10n.lang("bbs.ui.model_blocks.equipment.armor_chest");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_ARMOR_LEGS = L10n.lang("bbs.ui.model_blocks.equipment.armor_legs");
+    public static final IKey MODEL_BLOCKS_EQUIPMENT_ARMOR_FEET = L10n.lang("bbs.ui.model_blocks.equipment.armor_feet");
     public static final IKey MORPHING_DEMORPH = L10n.lang("bbs.ui.morphing.demorph");
     public static final IKey MORPHING_FROM_MOB = L10n.lang("bbs.ui.morphing.from_mob");
     public static final IKey MORPHING_TITLE = L10n.lang("bbs.ui.morphing.title");

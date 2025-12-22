@@ -1,5 +1,8 @@
 package mchorse.bbs_mod.blocks.entities;
 
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
+import mchorse.bbs_mod.data.DataStorageUtils;
 import mchorse.bbs_mod.data.IMapSerializable;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.FormUtils;
@@ -7,6 +10,12 @@ import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.utils.pose.Transform;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
+
+import java.util.Optional;
 
 public class ModelProperties implements IMapSerializable
 {
@@ -24,6 +33,14 @@ public class ModelProperties implements IMapSerializable
     private boolean global;
     private boolean shadow;
     private boolean lookAt;
+    
+    /* Equipment */
+    private ItemStack mainHand = ItemStack.EMPTY;
+    private ItemStack offHand = ItemStack.EMPTY;
+    private ItemStack armorHead = ItemStack.EMPTY;
+    private ItemStack armorChest = ItemStack.EMPTY;
+    private ItemStack armorLegs = ItemStack.EMPTY;
+    private ItemStack armorFeet = ItemStack.EMPTY;
 
     public Form getForm()
     {
@@ -134,6 +151,67 @@ public class ModelProperties implements IMapSerializable
     {
         this.lookAt = lookAt;
     }
+    
+    /* Equipment getters and setters */
+    public ItemStack getMainHand()
+    {
+        return this.mainHand;
+    }
+    
+    public void setMainHand(ItemStack stack)
+    {
+        this.mainHand = stack == null ? ItemStack.EMPTY : stack;
+    }
+    
+    public ItemStack getOffHand()
+    {
+        return this.offHand;
+    }
+    
+    public void setOffHand(ItemStack stack)
+    {
+        this.offHand = stack == null ? ItemStack.EMPTY : stack;
+    }
+    
+    public ItemStack getArmorHead()
+    {
+        return this.armorHead;
+    }
+    
+    public void setArmorHead(ItemStack stack)
+    {
+        this.armorHead = stack == null ? ItemStack.EMPTY : stack;
+    }
+    
+    public ItemStack getArmorChest()
+    {
+        return this.armorChest;
+    }
+    
+    public void setArmorChest(ItemStack stack)
+    {
+        this.armorChest = stack == null ? ItemStack.EMPTY : stack;
+    }
+    
+    public ItemStack getArmorLegs()
+    {
+        return this.armorLegs;
+    }
+    
+    public void setArmorLegs(ItemStack stack)
+    {
+        this.armorLegs = stack == null ? ItemStack.EMPTY : stack;
+    }
+    
+    public ItemStack getArmorFeet()
+    {
+        return this.armorFeet;
+    }
+    
+    public void setArmorFeet(ItemStack stack)
+    {
+        this.armorFeet = stack == null ? ItemStack.EMPTY : stack;
+    }
 
     public Form getForm(ModelTransformationMode mode)
     {
@@ -192,6 +270,69 @@ public class ModelProperties implements IMapSerializable
         this.shadow = data.getBool("shadow");
         this.global = data.getBool("global");
         this.lookAt = data.getBool("look_at");
+        
+        /* Load equipment */
+        DataResult<Pair<ItemStack, NbtElement>> decode;
+        
+        if (data.has("mainHand"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("mainHand")));
+            this.mainHand = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.mainHand = ItemStack.EMPTY;
+        }
+        
+        if (data.has("offHand"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("offHand")));
+            this.offHand = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.offHand = ItemStack.EMPTY;
+        }
+        
+        if (data.has("armorHead"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("armorHead")));
+            this.armorHead = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.armorHead = ItemStack.EMPTY;
+        }
+        
+        if (data.has("armorChest"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("armorChest")));
+            this.armorChest = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.armorChest = ItemStack.EMPTY;
+        }
+        
+        if (data.has("armorLegs"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("armorLegs")));
+            this.armorLegs = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.armorLegs = ItemStack.EMPTY;
+        }
+        
+        if (data.has("armorFeet"))
+        {
+            decode = ItemStack.CODEC.decode(NbtOps.INSTANCE, DataStorageUtils.toNbt(data.get("armorFeet")));
+            this.armorFeet = decode.result().map(Pair::getFirst).orElse(ItemStack.EMPTY);
+        }
+        else
+        {
+            this.armorFeet = ItemStack.EMPTY;
+        }
     }
 
     @Override
@@ -211,6 +352,25 @@ public class ModelProperties implements IMapSerializable
         data.putBool("shadow", this.shadow);
         data.putBool("global", this.global);
         data.putBool("look_at", this.lookAt);
+        
+        /* Save equipment - always save to allow clearing items */
+        Optional<NbtElement> result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.mainHand).result();
+        result.ifPresent(nbt -> data.put("mainHand", DataStorageUtils.fromNbt(nbt)));
+        
+        result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.offHand).result();
+        result.ifPresent(nbt -> data.put("offHand", DataStorageUtils.fromNbt(nbt)));
+        
+        result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.armorHead).result();
+        result.ifPresent(nbt -> data.put("armorHead", DataStorageUtils.fromNbt(nbt)));
+        
+        result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.armorChest).result();
+        result.ifPresent(nbt -> data.put("armorChest", DataStorageUtils.fromNbt(nbt)));
+        
+        result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.armorLegs).result();
+        result.ifPresent(nbt -> data.put("armorLegs", DataStorageUtils.fromNbt(nbt)));
+        
+        result = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.armorFeet).result();
+        result.ifPresent(nbt -> data.put("armorFeet", DataStorageUtils.fromNbt(nbt)));
     }
 
     public void update(IEntity entity)
