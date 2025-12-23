@@ -38,6 +38,17 @@ public class UICustomCurveEditor extends UIOverlayPanel
     private boolean draggingHandle = false;
     
     private UITextbox nameField;
+    private UITextbox posXField;
+    private UITextbox posYField;
+    private UIButton applyPosButton;
+    
+    // Handle fields
+    private UITextbox inHandleXField;
+    private UITextbox inHandleYField;
+    private UITextbox outHandleXField;
+    private UITextbox outHandleYField;
+    private UIButton applyHandleButton;
+    
     private UIButton saveButton;
     private UIButton cancelButton;
     private UIButton addPointButton;
@@ -61,6 +72,17 @@ public class UICustomCurveEditor extends UIOverlayPanel
         this.nameField = new UITextbox(100, (text) -> {});
         this.nameField.setText(this.interpolation.getName());
         
+        this.posXField = new UITextbox(50, (text) -> {});
+        this.posYField = new UITextbox(50, (text) -> {});
+        this.applyPosButton = new UIButton(UIKeys.GENERAL_APPLY, (b) -> this.applyPointPosition());
+        
+        // Handle fields
+        this.inHandleXField = new UITextbox(50, (text) -> {});
+        this.inHandleYField = new UITextbox(50, (text) -> {});
+        this.outHandleXField = new UITextbox(50, (text) -> {});
+        this.outHandleYField = new UITextbox(50, (text) -> {});
+        this.applyHandleButton = new UIButton(UIKeys.GENERAL_APPLY, (b) -> this.applyHandlePosition());
+        
         this.saveButton = new UIButton(UIKeys.GENERAL_SAVE, (b) -> this.save());
         this.cancelButton = new UIButton(UIKeys.GENERAL_CLOSE, (b) -> this.close());
         this.addPointButton = new UIButton(UIKeys.CUSTOM_CURVE_ADD_POINT, (b) -> this.addPoint());
@@ -70,6 +92,8 @@ public class UICustomCurveEditor extends UIOverlayPanel
         this.removePointButton.setEnabled(this.points.size() > 2);
         
         this.content.add(this.nameField);
+        this.content.add(this.posXField, this.posYField, this.applyPosButton);
+        this.content.add(this.inHandleXField, this.inHandleYField, this.outHandleXField, this.outHandleYField, this.applyHandleButton);
         this.content.add(this.addPointButton, this.removePointButton, this.resetButton);
         this.content.add(this.saveButton, this.cancelButton);
     }
@@ -148,6 +172,128 @@ public class UICustomCurveEditor extends UIOverlayPanel
         this.selectedPoint = -1;
         this.removePointButton.setEnabled(false);
     }
+    
+    private void applyPointPosition()
+    {
+        if (this.selectedPoint >= 0 && this.selectedPoint < this.points.size())
+        {
+            try
+            {
+                // Replace commas with dots for decimal parsing
+                String xText = this.posXField.getText().replace(',', '.');
+                String yText = this.posYField.getText().replace(',', '.');
+                
+                double x = Double.parseDouble(xText);
+                double y = Double.parseDouble(yText);
+                
+                System.out.println("Apply: Parsed x=" + x + ", y=" + y);
+                
+                // Clamp values
+                x = Math.max(0.0, Math.min(1.0, x));
+                y = Math.max(0.0, Math.min(1.0, y));
+                
+                ControlPoint point = this.points.get(this.selectedPoint);
+                
+                System.out.println("Apply: Before - point.x=" + point.x + ", point.y=" + point.y);
+                
+                // Don't allow moving first and last point on X axis
+                if (this.selectedPoint == 0)
+                {
+                    x = 0.0;
+                }
+                else if (this.selectedPoint == this.points.size() - 1)
+                {
+                    x = 1.0;
+                }
+                
+                point.x = x;
+                point.y = y;
+                
+                System.out.println("Apply: After - point.x=" + point.x + ", point.y=" + point.y);
+                
+                // Re-sort if not corner point
+                if (this.selectedPoint > 0 && this.selectedPoint < this.points.size() - 1)
+                {
+                    this.points.sort((a, b) -> Double.compare(a.x, b.x));
+                    // Find the point again after sorting
+                    this.selectedPoint = this.points.indexOf(point);
+                    System.out.println("Apply: After sort - selectedPoint=" + this.selectedPoint);
+                }
+                
+                // Update the fields with clamped values
+                this.updatePositionFields();
+            }
+            catch (NumberFormatException e)
+            {
+                // Invalid input, ignore
+                System.out.println("Apply: NumberFormatException - " + e.getMessage());
+            }
+        }
+        else
+        {
+            System.out.println("Apply: No point selected or invalid index");
+        }
+    }
+    
+    private void updatePositionFields()
+    {
+        if (this.selectedPoint >= 0 && this.selectedPoint < this.points.size())
+        {
+            ControlPoint point = this.points.get(this.selectedPoint);
+            this.posXField.setText(String.format("%.3f", point.x));
+            this.posYField.setText(String.format("%.3f", point.y));
+            
+            // Update handle fields
+            this.inHandleXField.setText(String.format("%.3f", point.inTangentX));
+            this.inHandleYField.setText(String.format("%.3f", point.inTangentY));
+            this.outHandleXField.setText(String.format("%.3f", point.outTangentX));
+            this.outHandleYField.setText(String.format("%.3f", point.outTangentY));
+        }
+        else
+        {
+            this.posXField.setText("");
+            this.posYField.setText("");
+            this.inHandleXField.setText("");
+            this.inHandleYField.setText("");
+            this.outHandleXField.setText("");
+            this.outHandleYField.setText("");
+        }
+    }
+    
+    private void applyHandlePosition()
+    {
+        if (this.selectedPoint >= 0 && this.selectedPoint < this.points.size())
+        {
+            try
+            {
+                ControlPoint point = this.points.get(this.selectedPoint);
+                
+                // Parse handle values (replace commas with dots)
+                double inX = Double.parseDouble(this.inHandleXField.getText().replace(',', '.'));
+                double inY = Double.parseDouble(this.inHandleYField.getText().replace(',', '.'));
+                double outX = Double.parseDouble(this.outHandleXField.getText().replace(',', '.'));
+                double outY = Double.parseDouble(this.outHandleYField.getText().replace(',', '.'));
+                
+                System.out.println("Apply Handles: inX=" + inX + ", inY=" + inY + ", outX=" + outX + ", outY=" + outY);
+                
+                // Apply hemisphere restrictions
+                if (inX > 0) inX = 0;
+                if (outX < 0) outX = 0;
+                
+                point.inTangentX = inX;
+                point.inTangentY = inY;
+                point.outTangentX = outX;
+                point.outTangentY = outY;
+                
+                // Update fields with corrected values
+                this.updatePositionFields();
+            }
+            catch (NumberFormatException e)
+            {
+                System.out.println("Apply Handles: NumberFormatException - " + e.getMessage());
+            }
+        }
+    }
 
     @Override
     public void close()
@@ -166,6 +312,22 @@ public class UICustomCurveEditor extends UIOverlayPanel
         this.nameField.relative(this.content).set(PADDING, y, GRAPH_SIZE, BUTTON_HEIGHT);
         y += BUTTON_HEIGHT + 5;
         
+        // Position fields (X, Y, and Apply button)
+        int fieldW = (GRAPH_SIZE - 10) / 3;
+        this.posXField.relative(this.content).set(PADDING, y, fieldW, BUTTON_HEIGHT);
+        this.posYField.relative(this.content).set(PADDING + fieldW + 5, y, fieldW, BUTTON_HEIGHT);
+        this.applyPosButton.relative(this.content).set(PADDING + fieldW * 2 + 10, y, fieldW, BUTTON_HEIGHT);
+        y += BUTTON_HEIGHT + 5;
+        
+        // Handle fields (In Yellow, Out Cyan)
+        int handleFieldW = (GRAPH_SIZE - 15) / 5; // 5 elements: 2 in fields, 2 out fields, 1 button
+        this.inHandleXField.relative(this.content).set(PADDING, y, handleFieldW, BUTTON_HEIGHT);
+        this.inHandleYField.relative(this.content).set(PADDING + handleFieldW + 5, y, handleFieldW, BUTTON_HEIGHT);
+        this.outHandleXField.relative(this.content).set(PADDING + handleFieldW * 2 + 10, y, handleFieldW, BUTTON_HEIGHT);
+        this.outHandleYField.relative(this.content).set(PADDING + handleFieldW * 3 + 15, y, handleFieldW, BUTTON_HEIGHT);
+        this.applyHandleButton.relative(this.content).set(PADDING + handleFieldW * 4 + 20, y, handleFieldW, BUTTON_HEIGHT);
+        y += BUTTON_HEIGHT + 5;
+        
         // Update graph area position relative to content
         this.graphArea.x = this.content.area.x + PADDING;
         this.graphArea.y = this.content.area.y + y;
@@ -173,7 +335,7 @@ public class UICustomCurveEditor extends UIOverlayPanel
         this.graphArea.h = GRAPH_SIZE;
         y += GRAPH_SIZE + PADDING;
         
-        int buttonW = (GRAPH_SIZE - PADDING * 2) / 3;
+        int buttonW = (GRAPH_SIZE - 10) / 3; // Fixed spacing calculation
         this.addPointButton.relative(this.content).set(PADDING, y, buttonW, BUTTON_HEIGHT);
         this.removePointButton.relative(this.content).set(PADDING + buttonW + 5, y, buttonW, BUTTON_HEIGHT);
         this.resetButton.relative(this.content).set(PADDING + buttonW * 2 + 10, y, buttonW, BUTTON_HEIGHT);
@@ -262,12 +424,15 @@ public class UICustomCurveEditor extends UIOverlayPanel
                 if (Screen.hasAltDown())
                 {
                     point.smooth = !point.smooth;
+                    System.out.println("Toggled smooth for point " + i + " to: " + point.smooth);
                     return;
                 }
                 
                 this.selectedPoint = i;
                 this.selectedHandle = -1;
                 this.dragging = true;
+                this.updatePositionFields();
+                System.out.println("Selected point " + i + ", smooth: " + point.smooth);
                 return;
             }
         }
@@ -311,6 +476,9 @@ public class UICustomCurveEditor extends UIOverlayPanel
             this.points.get(this.selectedPoint).x = x;
             this.points.get(this.selectedPoint).y = y;
             
+            // Update position fields in real-time
+            this.updatePositionFields();
+            
             if (this.selectedPoint > 0 && this.selectedPoint < this.points.size() - 1)
             {
                 this.points.sort((a, b) -> Double.compare(a.x, b.x));
@@ -330,43 +498,61 @@ public class UICustomCurveEditor extends UIOverlayPanel
             double handleX = mouseXNorm - point.x;
             double handleY = mouseYNorm - point.y;
             
-            // 180-degree limit: prevent handles from flipping to the opposite side
-            // Get the original handle direction to maintain hemisphere
+            // Hemisphere restriction: out handle (cyan) must point right, in handle (yellow) must point left
+            if (this.selectedHandle == 1 && handleX < 0) // Out handle trying to go left
+            {
+                handleX = 0.001; // Clamp to vertical (minimum right)
+            }
+            else if (this.selectedHandle == 0 && handleX > 0) // In handle trying to go right
+            {
+                handleX = -0.001; // Clamp to vertical (minimum left)
+            }
+            
+            // 90-degree rotation limit: prevent handles from rotating more than 90 degrees from original
             double originalHandleX = (this.selectedHandle == 0) ? point.inTangentX : point.outTangentX;
             double originalHandleY = (this.selectedHandle == 0) ? point.inTangentY : point.outTangentY;
             
-            // Calculate dot product to check if new handle is in opposite hemisphere (> 180 degrees)
-            double dotProduct = handleX * originalHandleX + handleY * originalHandleY;
-            
-            // If dot product is negative and we're not near zero, clamp to 90 degrees from original
-            if (dotProduct < 0 && (Math.abs(originalHandleX) > 0.01 || Math.abs(originalHandleY) > 0.01))
+            // Only apply restriction if original handle has meaningful direction
+            if (Math.abs(originalHandleX) > 0.01 || Math.abs(originalHandleY) > 0.01)
             {
-                // Project onto the perpendicular plane (limit to 90 degrees from original)
-                double perpX = -originalHandleY;
-                double perpY = originalHandleX;
+                // Normalize both vectors
+                double origMag = Math.sqrt(originalHandleX * originalHandleX + originalHandleY * originalHandleY);
+                double newMag = Math.sqrt(handleX * handleX + handleY * handleY);
                 
-                // Determine which perpendicular direction is closer
-                double dotPerp1 = handleX * perpX + handleY * perpY;
-                
-                if (dotPerp1 > 0)
+                if (origMag > 0.001 && newMag > 0.001)
                 {
-                    handleX = perpX;
-                    handleY = perpY;
-                }
-                else
-                {
-                    handleX = -perpX;
-                    handleY = -perpY;
-                }
-                
-                // Normalize and scale to original magnitude
-                double currentMag = Math.sqrt(handleX * handleX + handleY * handleY);
-                double targetMag = Math.sqrt((mouseXNorm - point.x) * (mouseXNorm - point.x) + 
-                                            (mouseYNorm - point.y) * (mouseYNorm - point.y));
-                if (currentMag > 0.001)
-                {
-                    handleX = (handleX / currentMag) * targetMag;
-                    handleY = (handleY / currentMag) * targetMag;
+                    double origNormX = originalHandleX / origMag;
+                    double origNormY = originalHandleY / origMag;
+                    double newNormX = handleX / newMag;
+                    double newNormY = handleY / newMag;
+                    
+                    // Calculate angle using dot product: cos(angle) = dot product of normalized vectors
+                    double cosAngle = origNormX * newNormX + origNormY * newNormY;
+                    
+                    // If angle > 90 degrees (cos < 0), clamp to perpendicular (90 degrees)
+                    if (cosAngle < 0)
+                    {
+                        // Get perpendicular vector (90 degrees from original)
+                        double perpX = -originalHandleY;
+                        double perpY = originalHandleX;
+                        
+                        // Choose perpendicular direction closer to desired direction
+                        double dotPerp = handleX * perpX + handleY * perpY;
+                        
+                        if (dotPerp < 0)
+                        {
+                            perpX = -perpX;
+                            perpY = -perpY;
+                        }
+                        
+                        // Normalize and scale to desired magnitude
+                        double perpMag = Math.sqrt(perpX * perpX + perpY * perpY);
+                        if (perpMag > 0.001)
+                        {
+                            handleX = (perpX / perpMag) * newMag;
+                            handleY = (perpY / perpMag) * newMag;
+                        }
+                    }
                 }
             }
             
@@ -427,6 +613,9 @@ public class UICustomCurveEditor extends UIOverlayPanel
                     point.outTangentX = -handleX;
                     point.outTangentY = -handleY;
                 }
+                
+                // Update fields in real-time
+                this.updatePositionFields();
             }
             else if (this.selectedHandle == 1)
             {
@@ -440,17 +629,64 @@ public class UICustomCurveEditor extends UIOverlayPanel
                     point.inTangentX = -handleX;
                     point.inTangentY = -handleY;
                 }
+                
+                // Update fields in real-time
+                this.updatePositionFields();
             }
         }
         
         // Update animation preview
-        this.previewTime += 0.01F;
+        this.previewTime += 0.007F;
         if (this.previewTime > 1.0F)
         {
             this.previewTime = 0.0F;
         }
         
         this.renderGraph(context);
+        
+        // Render colored borders for handle fields
+        if (this.selectedPoint >= 0 && this.selectedPoint < this.points.size())
+        {
+            int borderThickness = 1;
+            
+            // Yellow borders for In handle fields (inHandleX and inHandleY)
+            int inX1 = this.inHandleXField.area.x;
+            int inY1 = this.inHandleXField.area.y;
+            int inX2 = inX1 + this.inHandleXField.area.w;
+            int inY2 = inY1 + this.inHandleXField.area.h;
+            context.batcher.box(inX1 - borderThickness, inY1 - borderThickness, inX2 + borderThickness, inY1, 0xFFFFFF00); // Top
+            context.batcher.box(inX1 - borderThickness, inY2, inX2 + borderThickness, inY2 + borderThickness, 0xFFFFFF00); // Bottom
+            context.batcher.box(inX1 - borderThickness, inY1, inX1, inY2, 0xFFFFFF00); // Left
+            context.batcher.box(inX2, inY1, inX2 + borderThickness, inY2, 0xFFFFFF00); // Right
+            
+            int inYX1 = this.inHandleYField.area.x;
+            int inYY1 = this.inHandleYField.area.y;
+            int inYX2 = inYX1 + this.inHandleYField.area.w;
+            int inYY2 = inYY1 + this.inHandleYField.area.h;
+            context.batcher.box(inYX1 - borderThickness, inYY1 - borderThickness, inYX2 + borderThickness, inYY1, 0xFFFFFF00); // Top
+            context.batcher.box(inYX1 - borderThickness, inYY2, inYX2 + borderThickness, inYY2 + borderThickness, 0xFFFFFF00); // Bottom
+            context.batcher.box(inYX1 - borderThickness, inYY1, inYX1, inYY2, 0xFFFFFF00); // Left
+            context.batcher.box(inYX2, inYY1, inYX2 + borderThickness, inYY2, 0xFFFFFF00); // Right
+            
+            // Cyan borders for Out handle fields (outHandleX and outHandleY)
+            int outX1 = this.outHandleXField.area.x;
+            int outY1 = this.outHandleXField.area.y;
+            int outX2 = outX1 + this.outHandleXField.area.w;
+            int outY2 = outY1 + this.outHandleXField.area.h;
+            context.batcher.box(outX1 - borderThickness, outY1 - borderThickness, outX2 + borderThickness, outY1, 0xFF00FFFF); // Top
+            context.batcher.box(outX1 - borderThickness, outY2, outX2 + borderThickness, outY2 + borderThickness, 0xFF00FFFF); // Bottom
+            context.batcher.box(outX1 - borderThickness, outY1, outX1, outY2, 0xFF00FFFF); // Left
+            context.batcher.box(outX2, outY1, outX2 + borderThickness, outY2, 0xFF00FFFF); // Right
+            
+            int outYX1 = this.outHandleYField.area.x;
+            int outYY1 = this.outHandleYField.area.y;
+            int outYX2 = outYX1 + this.outHandleYField.area.w;
+            int outYY2 = outYY1 + this.outHandleYField.area.h;
+            context.batcher.box(outYX1 - borderThickness, outYY1 - borderThickness, outYX2 + borderThickness, outYY1, 0xFF00FFFF); // Top
+            context.batcher.box(outYX1 - borderThickness, outYY2, outYX2 + borderThickness, outYY2 + borderThickness, 0xFF00FFFF); // Bottom
+            context.batcher.box(outYX1 - borderThickness, outYY1, outYX1, outYY2, 0xFF00FFFF); // Left
+            context.batcher.box(outYX2, outYY1, outYX2 + borderThickness, outYY2, 0xFF00FFFF); // Right
+        }
     }
 
     private void renderGraph(UIContext context)
@@ -602,28 +838,32 @@ public class UICustomCurveEditor extends UIOverlayPanel
                                px + pointSize + borderThickness, py + pointSize, 0xFF000000);
         }
         
-        // Draw animation preview
+        // Draw animation preview on the right side
         if (this.points.size() >= 2)
         {
             CustomInterp tempInterp = new CustomInterp("temp", "temp", this.points);
             double previewY = tempInterp.interpolate(0, 1, this.previewTime);
             
-            int previewX = x + (int) (this.previewTime * w);
-            int previewYPos = y + (int) ((1 - previewY) * h);
+            // Draw preview on the right side, at the bottom + (previewY * height)
+            int previewX = x + w + 15; // 15 pixels to the right of the graph
+            int previewYPos = y + h - (int) (previewY * h); // From bottom (y+h) moving up based on interpolated value
             
             // Draw preview ball
             int ballSize = 8;
             context.batcher.box(previewX - ballSize, previewYPos - ballSize, 
-                               previewX + ballSize, previewYPos + ballSize, Colors.GREEN);
+                               previewX + ballSize, previewYPos + ballSize, 0xFF00FF00); // Green
             // Ball border
             context.batcher.box(previewX - ballSize - 1, previewYPos - ballSize - 1, 
-                               previewX + ballSize + 1, previewYPos - ballSize, Colors.A75);
+                               previewX + ballSize + 1, previewYPos - ballSize, 0xFFFFFFFF);
             context.batcher.box(previewX - ballSize - 1, previewYPos + ballSize, 
-                               previewX + ballSize + 1, previewYPos + ballSize + 1, Colors.A75);
+                               previewX + ballSize + 1, previewYPos + ballSize + 1, 0xFFFFFFFF);
             context.batcher.box(previewX - ballSize - 1, previewYPos - ballSize, 
-                               previewX - ballSize, previewYPos + ballSize, Colors.A75);
+                               previewX - ballSize, previewYPos + ballSize, 0xFFFFFFFF);
             context.batcher.box(previewX + ballSize, previewYPos - ballSize, 
-                               previewX + ballSize + 1, previewYPos + ballSize, Colors.A75);
+                               previewX + ballSize + 1, previewYPos + ballSize, 0xFFFFFFFF);
+            
+            // Draw vertical line guide on the right
+            context.batcher.box(previewX, y, previewX + 1, y + h, 0x80FFFFFF);
         }
         
         // Border

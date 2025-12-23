@@ -158,35 +158,48 @@ public class CustomInterp extends BaseInterp
             
             double localX = (x - left.x) / (right.x - left.x);
             
-            // Check if both points are smooth (have handles)
-            if (left.smooth && right.smooth)
+            // Check smoothness of both points to determine interpolation method
+            if (left.smooth || right.smooth)
             {
-                // Use Cubic Bezier interpolation (like After Effects)
-                // The handles represent control points in Bezier space
+                // Use Cubic Bezier interpolation with appropriate control points
+                // If a point is linear, its handle should point directly to/from the other point
                 
-                // P0 = left point
-                // P1 = left point + outHandle (control point 1)
-                // P2 = right point + inHandle (control point 2)  
-                // P3 = right point
-                
-                // Calculate absolute positions of control points
                 double p0x = left.x;
                 double p0y = left.y;
-                
-                double p1x = left.x + left.outTangentX;
-                double p1y = left.y + left.outTangentY;
-                
-                double p2x = right.x + right.inTangentX;
-                double p2y = right.y + right.inTangentY;
                 
                 double p3x = right.x;
                 double p3y = right.y;
                 
-                // Find the t parameter that corresponds to our target x value
-                // We need to solve: x = bezierX(t) for t, then use that t to get bezierY(t)
-                // Use Newton-Raphson method for better accuracy
+                // Control point 1 (from left point's out handle)
+                double p1x, p1y;
+                if (left.smooth)
+                {
+                    p1x = left.x + left.outTangentX;
+                    p1y = left.y + left.outTangentY;
+                }
+                else
+                {
+                    // Linear: control point is 1/3 of the way to the right point
+                    p1x = left.x + (right.x - left.x) * 0.333;
+                    p1y = left.y + (right.y - left.y) * 0.333;
+                }
                 
-                double targetX = x; // The X we're looking for
+                // Control point 2 (from right point's in handle)
+                double p2x, p2y;
+                if (right.smooth)
+                {
+                    p2x = right.x + right.inTangentX;
+                    p2y = right.y + right.inTangentY;
+                }
+                else
+                {
+                    // Linear: control point is 2/3 of the way from left to right point
+                    p2x = left.x + (right.x - left.x) * 0.666;
+                    p2y = left.y + (right.y - left.y) * 0.666;
+                }
+                
+                // Find the t parameter that corresponds to our target x value
+                double targetX = x;
                 double t = localX; // Initial guess
                 
                 // Newton-Raphson iterations to find t
@@ -231,7 +244,7 @@ public class CustomInterp extends BaseInterp
             }
             else
             {
-                // Linear interpolation if either point is not smooth
+                // Both points are linear - use simple linear interpolation
                 y = Lerps.lerp(left.y, right.y, localX);
             }
         }

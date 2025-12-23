@@ -441,6 +441,7 @@ public class UIKeys
     public static final IKey FORMS_LIST_SEARCH = L10n.lang("bbs.ui.forms.list.search");
     public static final IKey FORMS_SHARED_NOTIFICATION = L10n.lang("bbs.ui.forms.categories.shared-notification");
     public static final IKey GENERAL_ADD = L10n.lang("bbs.ui.add");
+    public static final IKey GENERAL_APPLY = L10n.lang("bbs.ui.apply");
     public static final IKey GENERAL_CANCEL = L10n.lang("bbs.ui.cancel");
     public static final IKey GENERAL_CLOSE = L10n.lang("bbs.ui.close");
     public static final IKey GENERAL_CONFIRM = L10n.lang("bbs.ui.confirm");

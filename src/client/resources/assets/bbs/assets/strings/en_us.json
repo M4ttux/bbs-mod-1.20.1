@@ -394,6 +394,7 @@
     "bbs.ui.color.favorite": "Favorite colors",
     "bbs.ui.color.recent": "Recent colors",
     "bbs.ui.config.title": "Settings",
+    "bbs.ui.apply": "Apply",
     "bbs.ui.confirm": "Confirm",
     "bbs.ui.context.key": "Option \"%s\"",
     "bbs.ui.context.key_category": "Context menu",
