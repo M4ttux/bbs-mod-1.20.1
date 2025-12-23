@@ -441,6 +441,7 @@ public class UIKeys
     public static final IKey FORMS_LIST_SEARCH = L10n.lang("bbs.ui.forms.list.search");
     public static final IKey FORMS_SHARED_NOTIFICATION = L10n.lang("bbs.ui.forms.categories.shared-notification");
     public static final IKey GENERAL_ADD = L10n.lang("bbs.ui.add");
+    public static final IKey GENERAL_CANCEL = L10n.lang("bbs.ui.cancel");
     public static final IKey GENERAL_CLOSE = L10n.lang("bbs.ui.close");
     public static final IKey GENERAL_CONFIRM = L10n.lang("bbs.ui.confirm");
     public static final IKey GENERAL_COPY = L10n.lang("bbs.ui.copy");
@@ -942,6 +943,16 @@ public class UIKeys
         .load(EnumUtils.getKeys(ParticleCurveType.class, (c) -> c.id));
     public static final KeyCollection C_INTERPOLATION = new KeyCollection("interpolations.^")
         .load(Interpolations.MAP.keySet());
+
+    /* Custom curve editor keys */
+    public static final IKey CUSTOM_CURVE_EDITOR_TITLE = L10n.lang("bbs.ui.custom_curve.editor_title");
+    public static final IKey CUSTOM_CURVE_ADD_POINT = L10n.lang("bbs.ui.custom_curve.add_point");
+    public static final IKey CUSTOM_CURVE_REMOVE_POINT = L10n.lang("bbs.ui.custom_curve.remove_point");
+    public static final IKey CUSTOM_CURVE_RESET = L10n.lang("bbs.ui.custom_curve.reset");
+    public static final IKey CUSTOM_CURVE_CREATE_NEW = L10n.lang("bbs.ui.custom_curve.create_new");
+    public static final IKey CUSTOM_CURVE_EDIT = L10n.lang("bbs.ui.custom_curve.edit");
+    public static final IKey CUSTOM_CURVE_DELETE = L10n.lang("bbs.ui.custom_curve.delete");
+    public static final IKey CUSTOM_CURVE_MANAGE = L10n.lang("bbs.ui.custom_curve.manage");
 
     public static final KeyCollection C_KEYBIND_CATGORIES = new KeyCollection("keybinds.config.^.title");
     public static final KeyCollection C_KEYBIND_CATGORIES_TOOLTIP = new KeyCollection("keybinds.config.^.tooltip");

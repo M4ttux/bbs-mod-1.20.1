@@ -4,6 +4,7 @@ import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.utils.context.ContextAction;
 import mchorse.bbs_mod.utils.interps.IInterp;
+import mchorse.bbs_mod.utils.interps.types.CustomInterp;
 import org.lwjgl.glfw.GLFW;
 
 public class InterpolationUtils
@@ -28,6 +29,12 @@ public class InterpolationUtils
 
     public static IKey getName(IInterp interp)
     {
+        // For custom interpolations, use the custom name directly
+        if (interp instanceof CustomInterp)
+        {
+            return IKey.raw(((CustomInterp) interp).getName());
+        }
+        
         return UIKeys.C_INTERPOLATION.get(interp.getKey());
     }
 }

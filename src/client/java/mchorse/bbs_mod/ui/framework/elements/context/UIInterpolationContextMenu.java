@@ -11,6 +11,8 @@ import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UICustomCurveEditor;
+import mchorse.bbs_mod.ui.framework.elements.overlay.UIOverlay;
 import mchorse.bbs_mod.ui.utils.InterpolationUtils;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.icons.Icon;
@@ -22,6 +24,8 @@ import mchorse.bbs_mod.utils.colors.Colors;
 import mchorse.bbs_mod.utils.interps.IInterp;
 import mchorse.bbs_mod.utils.interps.Interpolation;
 import mchorse.bbs_mod.utils.interps.Interpolations;
+import mchorse.bbs_mod.utils.interps.CustomCurveManager;
+import mchorse.bbs_mod.utils.interps.types.CustomInterp;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -42,6 +46,7 @@ public class UIInterpolationContextMenu extends UIContextMenu
     public UITrackpad v3;
     public UITrackpad v4;
 
+    public UIIcon customCurve;
     public UIIcon copy;
     public UIIcon paste;
 
@@ -150,11 +155,24 @@ public class UIInterpolationContextMenu extends UIContextMenu
         });
         this.paste.tooltip(UIKeys.INTERPOLATIONS_CONTEXT_PASTE);
 
+        this.customCurve = new UIIcon(Icons.ADD, (b) ->
+        {
+            this.openCustomCurveEditor();
+            this.accept();  // Close the context menu
+        });
+        this.customCurve.tooltip(UIKeys.CUSTOM_CURVE_CREATE_NEW);
+
         this.grid = new UIElement();
         this.grid.relative(this).xy(PADDING, gridY).w(w).h(h).grid(0).items(6);
 
+        // Add all regular interpolations first
         for (IInterp value : interpolation.getMap().values())
         {
+            if (value instanceof CustomInterp)
+            {
+                continue; // Skip custom curves for now, we'll add them separately
+            }
+            
             UIIcon icon = new UIIcon(INTERP_ICON_MAP.getOrDefault(value, Icons.INTERP_LINEAR), (b) ->
             {
                 this.interpolation.setInterp(value);
@@ -166,6 +184,48 @@ public class UIInterpolationContextMenu extends UIContextMenu
             this.icons.put(value, icon);
             this.setupKeybind(value, icon);
         }
+        
+        // Add custom curves with delete option
+        for (IInterp value : interpolation.getMap().values())
+        {
+            if (!(value instanceof CustomInterp))
+            {
+                continue;
+            }
+            
+            CustomInterp customInterp = (CustomInterp) value;
+            UIIcon icon = new UIIcon(Icons.INTERP_CUBIC_INOUT, (b) ->
+            {
+                this.interpolation.setInterp(customInterp);
+                this.accept();
+            });
+            
+            icon.tooltip(InterpolationUtils.getName(value));
+            icon.context((menu) ->
+            {
+                menu.action(Icons.EDIT, UIKeys.CUSTOM_CURVE_EDIT, () ->
+                {
+                    this.openCustomCurveEditorForEdit(customInterp);
+                    this.accept();
+                });
+                menu.action(Icons.REMOVE, UIKeys.CUSTOM_CURVE_DELETE, Colors.NEGATIVE, () ->
+                {
+                    CustomCurveManager.getInstance().deleteCurve(customInterp.getKey());
+                    // If this was the currently selected interpolation, switch to linear
+                    if (this.interpolation.getInterp() == customInterp)
+                    {
+                        this.interpolation.setInterp(Interpolations.LINEAR);
+                    }
+                    this.refreshCustomCurves();
+                });
+            });
+            
+            this.grid.add(icon);
+            this.icons.put(value, icon);
+        }
+        
+        // Add the "+" button at the end
+        this.grid.add(this.customCurve);
 
         UIElement vs = UI.column(UI.row(this.v1, this.v2, this.copy), UI.row(this.v3, this.v4, this.paste));
 
@@ -181,6 +241,98 @@ public class UIInterpolationContextMenu extends UIContextMenu
         {
             this.callback.run();
         }
+    }
+
+    private void openCustomCurveEditor()
+    {
+        this.openCustomCurveEditorForEdit(null);
+    }
+    
+    private void openCustomCurveEditorForEdit(CustomInterp current)
+    {
+        UIContext context = this.getContext();
+        
+        UICustomCurveEditor editor = new UICustomCurveEditor(current, (curve) ->
+        {
+            CustomCurveManager.getInstance().saveCurve(curve);
+            this.interpolation.setInterp(curve);
+            if (this.callback != null)
+            {
+                this.callback.run();
+            }
+        });
+        
+        // Open overlay (this automatically handles context menu closing)
+        UIOverlay.addOverlay(context, editor, 360, 470);
+    }
+
+    private void refreshCustomCurves()
+    {
+        // Rebuild the grid with updated custom curves
+        this.grid.removeAll();
+        
+        // Add regular interpolations first
+        for (IInterp value : this.interpolation.getMap().values())
+        {
+            if (value instanceof CustomInterp)
+            {
+                continue;
+            }
+            
+            UIIcon icon = new UIIcon(INTERP_ICON_MAP.getOrDefault(value, Icons.INTERP_LINEAR), (b) ->
+            {
+                this.interpolation.setInterp(value);
+                this.accept();
+            });
+
+            icon.tooltip(InterpolationUtils.getName(value));
+            this.grid.add(icon);
+            this.icons.put(value, icon);
+            this.setupKeybind(value, icon);
+        }
+        
+        // Add custom curves with context menu
+        for (IInterp value : this.interpolation.getMap().values())
+        {
+            if (!(value instanceof CustomInterp))
+            {
+                continue;
+            }
+            
+            CustomInterp customInterp = (CustomInterp) value;
+            UIIcon icon = new UIIcon(Icons.INTERP_CUBIC_INOUT, (b) ->
+            {
+                this.interpolation.setInterp(customInterp);
+                this.accept();
+            });
+
+            icon.tooltip(InterpolationUtils.getName(value));
+            icon.context((menu) ->
+            {
+                menu.action(Icons.EDIT, UIKeys.CUSTOM_CURVE_EDIT, () ->
+                {
+                    this.openCustomCurveEditorForEdit(customInterp);
+                    this.accept();
+                });
+                menu.action(Icons.REMOVE, UIKeys.CUSTOM_CURVE_DELETE, Colors.NEGATIVE, () ->
+                {
+                    CustomCurveManager.getInstance().deleteCurve(customInterp.getKey());
+                    if (this.interpolation.getInterp() == customInterp)
+                    {
+                        this.interpolation.setInterp(Interpolations.LINEAR);
+                    }
+                    this.refreshCustomCurves();
+                });
+            });
+            
+            this.grid.add(icon);
+            this.icons.put(value, icon);
+        }
+        
+        // Add the "+" button at the end
+        this.grid.add(this.customCurve);
+        
+        this.grid.resize();
     }
 
     private void setupKeybind(IInterp interp, UIIcon icon)

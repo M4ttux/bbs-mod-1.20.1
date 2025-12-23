@@ -348,6 +348,12 @@ public class BBSModClient implements ClientModInitializer
 
         KeybindSettings.registerClasses();
 
+        /* Initialize custom curve manager */
+        mchorse.bbs_mod.utils.interps.CustomCurveManager.getInstance();
+        
+        /* Optionally register preset curves (commented out by default) */
+        // mchorse.bbs_mod.utils.interps.CustomCurvePresets.registerPresets();
+
         BBSMod.setupConfig(Icons.KEY_CAP, "keybinds", new File(BBSMod.getSettingsFolder(), "keybinds.json"), KeybindSettings::register);
 
         BBSMod.events.post(new RegisterClientSettingsEvent());
