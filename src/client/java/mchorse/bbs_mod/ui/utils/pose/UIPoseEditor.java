@@ -9,6 +9,7 @@ import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
 import mchorse.bbs_mod.ui.framework.elements.input.UIColor;
 import mchorse.bbs_mod.ui.framework.elements.input.UIPropTransform;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
+import mchorse.bbs_mod.ui.framework.elements.input.list.UISearchList;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIStringList;
 import mchorse.bbs_mod.ui.utils.UI;
 import mchorse.bbs_mod.ui.utils.icons.Icons;
@@ -29,7 +30,8 @@ public class UIPoseEditor extends UIElement
 {
     private static String lastLimb = "";
 
-    public UIStringList groups;
+    public UISearchList<String> groups;
+    public UIStringList groupsList;
     public UITrackpad fix;
     public UIColor color;
     public UIToggle lighting;
@@ -42,10 +44,13 @@ public class UIPoseEditor extends UIElement
 
     public UIPoseEditor()
     {
-        this.groups = new UIStringList((l) -> this.pickBone(l.get(0)));
-        this.groups.background().h(UIStringList.DEFAULT_HEIGHT * 8 - 8);
-        this.groups.scroll.cancelScrolling();
-        this.groups.context(() ->
+        this.groupsList = new UIStringList((l) -> this.pickBone(l.get(0)));
+        this.groups = new UISearchList<>(this.groupsList);
+        this.groups.label(UIKeys.GENERAL_SEARCH);
+        this.groups.h(UIStringList.DEFAULT_HEIGHT * 8 + 12); // 20px search box + list height
+        this.groups.list.background();
+        this.groups.list.scroll.cancelScrolling();
+        this.groups.list.context(() ->
         {
             UIDataContextMenu menu = new UIDataContextMenu(PoseManager.INSTANCE, this.group, () -> this.pose.toData(), this::pastePose);
             UIIcon flip = new UIIcon(Icons.CONVERT, (b) -> this.flipPose());
@@ -131,12 +136,12 @@ public class UIPoseEditor extends UIElement
 
     public String getGroup()
     {
-        return this.groups.getCurrentFirst();
+        return this.groups.list.getCurrentFirst();
     }
 
     protected void pastePose(MapType data)
     {
-        String current = this.groups.getCurrentFirst();
+        String current = this.groups.list.getCurrentFirst();
 
         this.pose.fromData(data);
         this.pickBone(current);
@@ -144,7 +149,7 @@ public class UIPoseEditor extends UIElement
 
     protected void flipPose()
     {
-        String current = this.groups.getCurrentFirst();
+        String current = this.groups.list.getCurrentFirst();
 
         this.pose.flip(this.flippedParts);
         this.pickBone(current);
@@ -174,26 +179,26 @@ public class UIPoseEditor extends UIElement
 
     private void fillInGroups(Collection<String> groups, boolean reset)
     {
-        this.groups.clear();
-        this.groups.add(groups);
-        this.groups.sort();
+        this.groups.list.clear();
+        this.groups.list.add(groups);
+        this.groups.list.sort();
 
         this.fix.setVisible(!groups.isEmpty());
         this.color.setVisible(!groups.isEmpty());
         this.transform.setVisible(!groups.isEmpty());
 
-        List<String> list = this.groups.getList();
+        List<String> list = this.groups.list.getList();
         int i = Math.max(reset ? 0 : list.indexOf(lastLimb), 0);
 
-        this.groups.setCurrentScroll(CollectionUtils.getSafe(list, i));
-        this.pickBone(this.groups.getCurrentFirst());
+        this.groups.list.setCurrentScroll(CollectionUtils.getSafe(list, i));
+        this.pickBone(this.groups.list.getCurrentFirst());
     }
 
     public void selectBone(String bone)
     {
         lastLimb = bone;
 
-        this.groups.setCurrentScroll(bone);
+        this.groups.list.setCurrentScroll(bone);
         this.pickBone(bone);
     }
 
