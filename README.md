@@ -79,4 +79,26 @@ Add items and armor to model blocks for hands and armor slots.
 - Save your changes and exit edit mode to see the equipment rendered correctly
 - The equipment data is properly saved and will render when not actively editing
 
+### 4. Replay Death Item Drops
+
+Replays configured as "actors" now drop their items when they die, recreating vanilla Minecraft behavior.
+
+**How to use:**
+1. Create a replay and configure it as an "Actor" (enables physical entity behavior)
+2. Equip the replay with items via keyframes (main hand, off hand, armor)
+3. When the replay receives fatal damage, it will drop all equipped items
+4. Items are also dropped from the film's inventory if available
+
+**Features:**
+- **Equipment drops**: Drops items from main hand, off hand, and all armor slots
+- **Inventory drops**: Drops all items from the film's recorded inventory
+- **Vanilla physics**: Items drop with realistic velocity and pickup delay
+- **Tick-accurate**: Items are retrieved from the exact tick when death occurs
+
+**Notes:**
+- Only works with replays that have the "Actor" option enabled
+- Items are interpolated from keyframes at the exact death tick
+- Film inventory items are dropped in addition to equipped items
+- See `REPLAY_DEATH_DROPS_README.md` for detailed documentation
+
 ---
